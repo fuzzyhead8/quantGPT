@@ -3,3 +3,9 @@ pandas
 python-binance
 backtester
 plotly
+python-dotenv
+python-binance
+backtrader
+plotly
+backtrader_plotly
+

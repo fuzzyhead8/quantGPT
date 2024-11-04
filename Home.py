@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 from createLLM import create_assistant
 
 st.title('🤖 QuantLLM: an automated crypto strategy Generator and backtester.')
@@ -10,7 +11,7 @@ st.markdown("""QuantLLM lets you easily generate, optimise and backtest a crypto
 st.markdown("## Add your OpenAI API key to create your quant assistant")
 st.write("This step will create an openAI assistant, providing it the necessary files and instruction. The assistant id will be stored in .env.")
 
-api_key = st.text_input("Your openAI API key")
+api_key = os.getenv("OPENAI_API_KEY")
 
 
 if st.button('Create assistant'):

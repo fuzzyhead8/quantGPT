@@ -1,36 +1,37 @@
-
 from LoggedStrategy import *
-import backtrader as bt
+import backtrader as bt 
 
 class GeneratedStrategy(LoggedStrategy):
     params = (
-        ('fast', 10),  # period for the fast moving average
-        ('slow', 30),  # period for the slow moving average
+        ('tenkan_period', 9),
+        ('kijun_period', 26),
+        ('s_span_a_period', 26),
+        ('s_span_b_period', 52),
     )
 
     def __init__(self):
-        # Initialize moving averages using simple moving average (SMA)
-        self.sma_fast = bt.indicators.SimpleMovingAverage(self.data.close, period=self.params.fast)
-        self.sma_slow = bt.indicators.SimpleMovingAverage(self.data.close, period=self.params.slow)
-        self.crossover = bt.indicators.CrossOver(self.sma_fast, self.sma_slow)
+        self.tenkan = bt.indicators.Ichimoku(self.data, 
+                                             tenkan=self.params.tenkan_period,
+                                             kijun=self.params.kijun_period)
+        self.kijun = self.tenkan.kijun
+        self.cloud_a = self.tenkan.senkou_a
+        self.cloud_b = self.tenkan.senkou_b
 
     def next(self):
-        # Only check for signals if we are not in the market
-        if not self.position:
-            if self.crossover > 0:
-                self.buy()  # fast crosses above slow
-            elif self.crossover < 0:
-                self.sell()  # fast crosses below slow
-        # If already in the market and the trend reverses, close the position
-        elif self.crossover < 0 and self.position.size > 0:
-            self.close()  # close long position
-        elif self.crossover > 0 and self.position.size < 0:
-            self.close()  # close short position
+        if not self.position:  # Not in a position
+            if self.data.close[0] > self.cloud_a[0] and self.data.close[0] > self.cloud_b[0]:
+                # Buy signal
+                self.buy()
+        else:  # In a position
+            if self.data.close[0] < self.cloud_a[0] or self.data.close[0] < self.cloud_b[0]:
+                # Sell signal
+                self.sell()
 
     @staticmethod
     def get_optimisation_range():
-        # Return a range of parameters to test in optimisation
         return {
-            'fast': range(5, 15),  # test fast moving averages from 5 to 14
-            'slow': range(20, 40)  # test slow moving averages from 20 to 39
+            'tenkan_period': range(5, 20, 1),
+            'kijun_period': range(15, 40, 1),
+            's_span_a_period': range(20, 30, 1),
+            's_span_b_period': range(40, 60, 1),
         }
